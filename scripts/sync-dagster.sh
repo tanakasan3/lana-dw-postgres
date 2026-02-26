@@ -107,7 +107,8 @@ RUN pip install \
     requests \
     opentelemetry-api \
     opentelemetry-sdk \
-    opentelemetry-exporter-otlp-proto-grpc
+    opentelemetry-exporter-otlp-proto-grpc \
+    google-cloud-bigquery
 
 # Copy source code
 RUN mkdir -p /lana-dw
