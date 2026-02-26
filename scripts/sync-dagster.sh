@@ -106,7 +106,8 @@ RUN pip install \
     pandas \
     requests \
     opentelemetry-api \
-    opentelemetry-sdk
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-grpc
 
 # Copy source code
 RUN mkdir -p /lana-dw
