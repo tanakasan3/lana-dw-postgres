@@ -11,6 +11,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - DAGSTER_HOME=/opt/dagster/home
       # Dagster instance DB (metadata)
       - DAGSTER_PG_HOST=dagster-postgres
       - DAGSTER_PG_PORT=5432
@@ -29,7 +30,7 @@ services:
       - DW_RAW_SCHEMA=${DW_RAW_SCHEMA:-raw}
       - DW_DBT_SCHEMA=${DW_DBT_SCHEMA:-dbt}
     volumes:
-      - ./dagster/dagster.yaml:/lana-dw/dagster.yaml
+      - ./dagster/dagster.yaml:/opt/dagster/home/dagster.yaml
     command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-f", "/lana-dw/src/definitions.py"]
     depends_on:
       dagster-postgres:
@@ -43,6 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: lana-dw-daemon
     environment:
+      - DAGSTER_HOME=/opt/dagster/home
       # Dagster instance DB (metadata)
       - DAGSTER_PG_HOST=dagster-postgres
       - DAGSTER_PG_PORT=5432
@@ -61,7 +63,7 @@ services:
       - DW_RAW_SCHEMA=${DW_RAW_SCHEMA:-raw}
       - DW_DBT_SCHEMA=${DW_DBT_SCHEMA:-dbt}
     volumes:
-      - ./dagster/dagster.yaml:/lana-dw/dagster.yaml
+      - ./dagster/dagster.yaml:/opt/dagster/home/dagster.yaml
     command: ["dagster-daemon", "run"]
     depends_on:
       dagster-postgres:

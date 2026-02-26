@@ -136,14 +136,14 @@ storage:
     postgres_db:
       hostname:
         env: DAGSTER_PG_HOST
+      port:
+        env: DAGSTER_PG_PORT
       username:
         env: DAGSTER_PG_USER
       password:
         env: DAGSTER_PG_PASSWORD
       db_name:
         env: DAGSTER_PG_DB
-      port:
-        env: DAGSTER_PG_PORT
 
 run_launcher:
   module: dagster.core.launcher
