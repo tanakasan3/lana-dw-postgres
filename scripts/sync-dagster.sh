@@ -128,6 +128,15 @@ EXPOSE 3000
 CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-f", "/lana-dw/src/definitions.py", "-d", "/lana-dw"]
 EOF
 
+# Create workspace.yaml for code location
+echo "Creating workspace.yaml..."
+cat > "$DAGSTER_DIR/workspace.yaml" << 'EOF'
+load_from:
+  - python_file:
+      relative_path: src/definitions.py
+      working_directory: /lana-dw
+EOF
+
 # Create dagster.yaml for instance configuration
 echo "Creating dagster.yaml..."
 cat > "$DAGSTER_DIR/dagster.yaml" << 'EOF'
