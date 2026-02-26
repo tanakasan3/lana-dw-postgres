@@ -1,9 +1,0 @@
-LANA_PG_CON=postgres://postgres:password@host.docker.internal:5433/lana
-DW_TARGET=postgres
-DW_PG_HOST=host.docker.internal
-DW_PG_PORT=5433
-DW_PG_DATABASE=lana
-DW_PG_USER=postgres
-DW_PG_PASSWORD=password
-DW_RAW_SCHEMA=raw
-DW_DBT_SCHEMA=dbt
