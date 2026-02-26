@@ -30,7 +30,7 @@ services:
       - DW_DBT_SCHEMA=${DW_DBT_SCHEMA:-dbt}
     volumes:
       - ./dagster/dagster.yaml:/lana-dw/dagster.yaml
-    command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/lana-dw/src/workspace.yaml"]
+    command: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-f", "/lana-dw/src/definitions.py"]
     depends_on:
       dagster-postgres:
         condition: service_healthy
