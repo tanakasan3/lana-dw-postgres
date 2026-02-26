@@ -133,7 +133,7 @@ echo "Creating workspace.yaml..."
 cat > "$DAGSTER_DIR/workspace.yaml" << 'EOF'
 load_from:
   - python_file:
-      relative_path: src/definitions.py
+      python_file: /lana-dw/src/definitions.py
       working_directory: /lana-dw
 EOF
 
