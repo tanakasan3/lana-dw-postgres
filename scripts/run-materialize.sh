@@ -22,7 +22,7 @@ echo -e "${GREEN}Triggering full materialization...${NC}"
 
 # Execute dagster CLI in the webserver container
 docker compose -f "$PROJECT_DIR/docker-compose.yml" exec dagster-webserver \
-    dagster asset materialize --select "*"
+    dagster asset materialize -f /lana-dw/src/definitions.py --select "*"
 
 echo ""
 echo -e "${GREEN}✓ Materialization triggered!${NC}"
