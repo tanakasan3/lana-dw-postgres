@@ -115,7 +115,9 @@ RUN pip install \
     opentelemetry-sdk \
     opentelemetry-exporter-otlp-proto-grpc \
     google-cloud-bigquery \
-    google-cloud-storage
+    google-cloud-storage \
+    PyYAML \
+    xmlschema
 
 # Copy source code
 RUN mkdir -p /lana-dw
