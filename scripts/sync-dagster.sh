@@ -100,8 +100,8 @@ RUN pip install \
 
 # Install dbt and dlt with postgres support
 RUN pip install \
-    dbt-core~=1.10.3 \
-    dbt-postgres~=1.10.3 \
+    dbt-core~=1.10.0 \
+    dbt-postgres~=1.10.0 \
     "dlt[postgres]~=1.18.1" \
     pandas \
     requests
