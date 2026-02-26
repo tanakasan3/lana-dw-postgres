@@ -53,16 +53,9 @@ fi
 
 echo -e "${GREEN}Syncing dagster from:${NC} $LANA_BANK_DIR"
 
-# Clean existing dagster directory (preserve Dockerfile if exists)
+# Clean existing dagster directory
 if [[ -d "$DAGSTER_DIR" ]]; then
     echo "Cleaning existing dagster directory..."
-    # Preserve our custom files
-    if [[ -f "$DAGSTER_DIR/Dockerfile" ]]; then
-        cp "$DAGSTER_DIR/Dockerfile" /tmp/lana-dw-dockerfile.bak
-    fi
-    if [[ -f "$DAGSTER_DIR/dagster.yaml" ]]; then
-        cp "$DAGSTER_DIR/dagster.yaml" /tmp/lana-dw-dagster-yaml.bak
-    fi
     rm -rf "$DAGSTER_DIR"
 fi
 
@@ -71,87 +64,96 @@ mkdir -p "$DAGSTER_DIR"
 
 # Copy dagster source
 echo "Copying dagster source..."
-cp -r "$LANA_BANK_DIR/dagster/src/"* "$DAGSTER_DIR/"
+cp -r "$LANA_BANK_DIR/dagster/src" "$DAGSTER_DIR/"
 
-# Copy pyproject.toml and adjust if needed
-if [[ -f "$LANA_BANK_DIR/dagster/pyproject.toml" ]]; then
-    echo "Copying pyproject.toml..."
-    cp "$LANA_BANK_DIR/dagster/pyproject.toml" "$DAGSTER_DIR/"
+# Copy workspace.yaml if it exists
+if [[ -f "$LANA_BANK_DIR/dagster/workspace.yaml" ]]; then
+    cp "$LANA_BANK_DIR/dagster/workspace.yaml" "$DAGSTER_DIR/"
 fi
 
-# Restore our custom files
-if [[ -f /tmp/lana-dw-dockerfile.bak ]]; then
-    cp /tmp/lana-dw-dockerfile.bak "$DAGSTER_DIR/Dockerfile"
-    rm /tmp/lana-dw-dockerfile.bak
-fi
-if [[ -f /tmp/lana-dw-dagster-yaml.bak ]]; then
-    cp /tmp/lana-dw-dagster-yaml.bak "$DAGSTER_DIR/dagster.yaml"
-    rm /tmp/lana-dw-dagster-yaml.bak
-fi
+# Create our custom Dockerfile for PostgreSQL
+echo "Creating Dockerfile..."
+cat > "$DAGSTER_DIR/Dockerfile" << 'EOF'
+FROM python:3.13-slim
 
-# Create Dockerfile if it doesn't exist
-if [[ ! -f "$DAGSTER_DIR/Dockerfile" ]]; then
-    echo "Creating Dockerfile..."
-    cat > "$DAGSTER_DIR/Dockerfile" << 'EOF'
-FROM python:3.11-slim
-
-WORKDIR /opt/dagster/app
+ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
+    curl \
+    build-essential \
     libpq-dev \
-    gcc \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e .
+RUN pip install --upgrade pip
 
-# Install dbt postgres adapter
-RUN pip install --no-cache-dir dbt-postgres
+# Install dagster and dependencies
+ARG DAGSTER_VERSION=1.12.0
+ARG DAGSTER_EXT_VERSION=0.28.1
+RUN pip install \
+    dagster~=${DAGSTER_VERSION} \
+    dagster-webserver~=${DAGSTER_EXT_VERSION} \
+    dagster-postgres~=${DAGSTER_EXT_VERSION} \
+    dagster-dbt~=${DAGSTER_EXT_VERSION} \
+    dagster-dlt~=${DAGSTER_EXT_VERSION}
 
-# Copy application code
-COPY . .
+# Install dbt and dlt with postgres support
+RUN pip install \
+    dbt-core~=1.10.3 \
+    dbt-postgres~=1.10.3 \
+    "dlt[postgres]~=1.18.1" \
+    pandas \
+    requests
 
-# Create dagster home directory
-RUN mkdir -p /opt/dagster/dagster_home
+# Copy source code
+RUN mkdir -p /lana-dw
+COPY src/ /lana-dw/src/
 
-# Set environment
-ENV DAGSTER_HOME=/opt/dagster/dagster_home
+WORKDIR /lana-dw
+
+# Pre-parse dbt manifest (with dummy vars for build)
+RUN DW_TARGET=postgres \
+    DW_PG_HOST=localhost \
+    DW_PG_PORT=5432 \
+    DW_PG_DATABASE=lana \
+    DW_PG_USER=postgres \
+    DW_PG_PASSWORD=dummy \
+    DW_RAW_SCHEMA=raw \
+    DW_DBT_SCHEMA=dbt \
+    dbt parse --project-dir /lana-dw/src/dbt_lana_dw --profiles-dir /lana-dw/src/dbt_lana_dw || true
 
 EXPOSE 3000
-EOF
-fi
 
-# Create dagster.yaml if it doesn't exist
-if [[ ! -f "$DAGSTER_DIR/dagster.yaml" ]]; then
-    echo "Creating dagster.yaml..."
-    cat > "$DAGSTER_DIR/dagster.yaml" << 'EOF'
-# Dagster instance configuration
+CMD ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-f", "/lana-dw/src/definitions.py", "-d", "/lana-dw"]
+EOF
+
+# Create dagster.yaml for instance configuration
+echo "Creating dagster.yaml..."
+cat > "$DAGSTER_DIR/dagster.yaml" << 'EOF'
 storage:
   postgres:
     postgres_db:
-      hostname: dagster-postgres
-      username: dagster
-      password: dagster
-      db_name: dagster
-      port: 5432
+      hostname:
+        env: DAGSTER_PG_HOST
+      username:
+        env: DAGSTER_PG_USER
+      password:
+        env: DAGSTER_PG_PASSWORD
+      db_name:
+        env: DAGSTER_PG_DB
+      port:
+        env: DAGSTER_PG_PORT
 
 run_launcher:
   module: dagster.core.launcher
   class: DefaultRunLauncher
-
-run_coordinator:
-  module: dagster.core.run_coordinator
-  class: DefaultRunCoordinator
 EOF
-fi
 
 echo ""
 echo -e "${GREEN}✓ Sync complete!${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. Review .env configuration"
-echo "  2. Run: docker compose up -d"
+echo "  2. Run: docker compose up -d --build"
 echo "  3. Open: http://localhost:3000"

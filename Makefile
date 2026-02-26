@@ -34,7 +34,7 @@ init-schemas:
 
 # Docker
 up:
-	docker compose up -d
+	docker compose up -d --build
 	@echo ""
 	@echo "Dagster UI: http://localhost:3000"
 
