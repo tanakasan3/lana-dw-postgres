@@ -104,7 +104,9 @@ RUN pip install \
     dbt-postgres~=1.10.0 \
     "dlt[postgres]~=1.18.1" \
     pandas \
-    requests
+    requests \
+    opentelemetry-api \
+    opentelemetry-sdk
 
 # Copy source code
 RUN mkdir -p /lana-dw
