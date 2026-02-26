@@ -66,6 +66,12 @@ mkdir -p "$DAGSTER_DIR"
 echo "Copying dagster source..."
 cp -r "$LANA_BANK_DIR/dagster/src" "$DAGSTER_DIR/"
 
+# Copy generate_es_reports package
+if [[ -d "$LANA_BANK_DIR/dagster/generate_es_reports" ]]; then
+    echo "Copying generate_es_reports..."
+    cp -r "$LANA_BANK_DIR/dagster/generate_es_reports" "$DAGSTER_DIR/"
+fi
+
 # Copy workspace.yaml if it exists
 if [[ -f "$LANA_BANK_DIR/dagster/workspace.yaml" ]]; then
     cp "$LANA_BANK_DIR/dagster/workspace.yaml" "$DAGSTER_DIR/"
@@ -114,6 +120,10 @@ RUN pip install \
 # Copy source code
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
+COPY generate_es_reports/ /lana-dw/generate_es_reports/
+
+# Install generate_es_reports package
+RUN pip install /lana-dw/generate_es_reports/
 
 WORKDIR /lana-dw
 
