@@ -90,10 +90,10 @@ RUN pip install --upgrade pip
 
 # Install dagster and dependencies
 ARG DAGSTER_VERSION=1.12.0
-ARG DAGSTER_EXT_VERSION=0.28.1
+ARG DAGSTER_EXT_VERSION=0.28.0
 RUN pip install \
     dagster~=${DAGSTER_VERSION} \
-    dagster-webserver~=${DAGSTER_EXT_VERSION} \
+    dagster-webserver~=${DAGSTER_VERSION} \
     dagster-postgres~=${DAGSTER_EXT_VERSION} \
     dagster-dbt~=${DAGSTER_EXT_VERSION} \
     dagster-dlt~=${DAGSTER_EXT_VERSION}
