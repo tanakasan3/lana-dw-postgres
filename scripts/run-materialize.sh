@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 TARGET="${1:-all}"
 
 # Check if dagster is running
-if ! docker compose -f "$PROJECT_DIR/docker-compose.yml" ps --status running | grep -q "lana-dw-webserver"; then
+if ! docker compose -f "$PROJECT_DIR/docker-compose.yml" ps --status running | grep -q "dagster-webserver"; then
     echo -e "${RED}Error: Dagster webserver is not running${NC}"
     echo "Start it with: make up"
     exit 1
@@ -26,8 +26,8 @@ run_job() {
     local description="$2"
     
     echo -e "${GREEN}Executing: ${description}...${NC}"
-    docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T lana-dw-webserver \
-        dagster job execute -j "$job_name" -w workspace.yaml
+    docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T dagster-webserver \
+        dagster job execute -j "$job_name" -w /lana-dw/workspace.yaml
     echo -e "${GREEN}✓ ${description} complete${NC}"
     echo ""
 }

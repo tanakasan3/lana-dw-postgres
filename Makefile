@@ -56,7 +56,7 @@ logs:
 	docker compose logs -f
 
 shell:
-	docker compose exec lana-dw-webserver bash
+	docker compose exec dagster-webserver bash
 
 # Materialization - individual steps
 materialize-el:
@@ -78,9 +78,10 @@ materialize:
 refresh:
 	@./scripts/run-materialize.sh refresh
 
-# Debug
+# Debug - connect to DW postgres (uses env vars from .env)
 psql:
-	docker compose exec lana-dw-postgres psql -U postgres -d lana_dw
+	@. .env 2>/dev/null || true; \
+	PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}"
 
 # Cleanup
 clean:
