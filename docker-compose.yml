@@ -29,6 +29,8 @@ services:
       - DW_PG_PASSWORD=${DW_PG_PASSWORD}
       - DW_RAW_SCHEMA=${DW_RAW_SCHEMA:-raw}
       - DW_DBT_SCHEMA=${DW_DBT_SCHEMA:-dbt}
+      # Lana admin server (for file reports - optional)
+      - LANA_ADMIN_SERVER_URL=${LANA_ADMIN_SERVER_URL:-}
     volumes:
       - ./dagster/dagster.yaml:/opt/dagster/home/dagster.yaml
       - ./dagster/workspace.yaml:/lana-dw/workspace.yaml
@@ -63,6 +65,8 @@ services:
       - DW_PG_PASSWORD=${DW_PG_PASSWORD}
       - DW_RAW_SCHEMA=${DW_RAW_SCHEMA:-raw}
       - DW_DBT_SCHEMA=${DW_DBT_SCHEMA:-dbt}
+      # Lana admin server (for file reports - optional)
+      - LANA_ADMIN_SERVER_URL=${LANA_ADMIN_SERVER_URL:-}
     volumes:
       - ./dagster/dagster.yaml:/opt/dagster/home/dagster.yaml
       - ./dagster/workspace.yaml:/lana-dw/workspace.yaml
