@@ -1,4 +1,6 @@
-.PHONY: help sync init-schemas up down logs materialize shell clean
+.PHONY: help sync init-schemas up down logs shell clean \
+        materialize materialize-el materialize-seeds materialize-dbt materialize-bitfinex refresh \
+        psql
 
 # Default lana-bank path (override with: make sync LANA_BANK=~/path/to/lana-bank)
 LANA_BANK ?= ../lana-bank
@@ -16,8 +18,17 @@ help:
 	@echo "  make logs          Tail dagster logs"
 	@echo "  make shell         Shell into webserver container"
 	@echo ""
-	@echo "Pipeline:"
-	@echo "  make materialize   Trigger full asset materialization"
+	@echo "Materialization (run in dependency order):"
+	@echo "  make materialize-el      1. Load raw tables from lana-core"
+	@echo "  make materialize-seeds   2. Load dbt seeds (reference data)"
+	@echo "  make materialize-dbt     3. Run dbt models (transforms)"
+	@echo "  make materialize         Run all above in order (cold start)"
+	@echo "  make refresh             Quick: EL + dbt models (skip seeds)"
+	@echo ""
+	@echo "  make materialize-bitfinex  Load Bitfinex market data"
+	@echo ""
+	@echo "Debug:"
+	@echo "  make psql          Connect to DW postgres"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean         Remove dagster directory and volumes"
@@ -45,11 +56,31 @@ logs:
 	docker compose logs -f
 
 shell:
-	docker compose exec dagster-webserver bash
+	docker compose exec lana-dw-webserver bash
 
-# Pipeline
+# Materialization - individual steps
+materialize-el:
+	@./scripts/run-materialize.sh el
+
+materialize-seeds:
+	@./scripts/run-materialize.sh seeds
+
+materialize-dbt:
+	@./scripts/run-materialize.sh dbt
+
+materialize-bitfinex:
+	@./scripts/run-materialize.sh bitfinex
+
+# Materialization - combined
 materialize:
-	@./scripts/run-materialize.sh
+	@./scripts/run-materialize.sh all
+
+refresh:
+	@./scripts/run-materialize.sh refresh
+
+# Debug
+psql:
+	docker compose exec lana-dw-postgres psql -U postgres -d lana_dw
 
 # Cleanup
 clean:
