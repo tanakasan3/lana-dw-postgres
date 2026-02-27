@@ -78,17 +78,17 @@ materialize:
 refresh:
 	@./scripts/run-materialize.sh refresh
 
-# Debug - connect to DW postgres (uses env vars from .env)
+# Debug - connect to DW postgres (runs inside container to resolve host.docker.internal)
 psql:
-	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}"'
+	docker compose exec dagster-webserver bash -c 'PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$$DW_PG_HOST" -p "$$DW_PG_PORT" -U "$$DW_PG_USER" -d "$$DW_PG_DATABASE"'
 
 # List schemas in DW
 psql-schemas:
-	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}" -c "\\dn"'
+	docker compose exec dagster-webserver bash -c 'PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$$DW_PG_HOST" -p "$$DW_PG_PORT" -U "$$DW_PG_USER" -d "$$DW_PG_DATABASE" -c "\\dn"'
 
 # List tables in raw schema
 psql-tables:
-	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}" -c "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('\''$$DW_RAW_SCHEMA'\'', '\''$$DW_DBT_SCHEMA'\'') ORDER BY schemaname, tablename;"'
+	docker compose exec dagster-webserver bash -c 'PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$$DW_PG_HOST" -p "$$DW_PG_PORT" -U "$$DW_PG_USER" -d "$$DW_PG_DATABASE" -c "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('\''$$DW_RAW_SCHEMA'\'', '\''$$DW_DBT_SCHEMA'\'') ORDER BY schemaname, tablename;"'
 
 # Cleanup
 clean:
