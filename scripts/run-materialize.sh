@@ -27,7 +27,7 @@ run_job() {
     
     echo -e "${GREEN}Executing: ${description}...${NC}"
     docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T dagster-webserver \
-        dagster job execute -j "$job_name" -w /lana-dw/workspace.yaml
+        dagster job execute -f /lana-dw/src/definitions.py -d /lana-dw -j "$job_name"
     echo -e "${GREEN}✓ ${description} complete${NC}"
     echo ""
 }
