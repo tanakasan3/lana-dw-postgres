@@ -1,6 +1,6 @@
 .PHONY: help sync init-schemas up down logs shell clean \
         materialize materialize-el materialize-seeds materialize-dbt materialize-bitfinex refresh \
-        psql
+        psql psql-schemas psql-tables
 
 # Default lana-bank path (override with: make sync LANA_BANK=~/path/to/lana-bank)
 LANA_BANK ?= ../lana-bank
@@ -80,8 +80,15 @@ refresh:
 
 # Debug - connect to DW postgres (uses env vars from .env)
 psql:
-	@. .env 2>/dev/null || true; \
-	PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}"
+	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}"'
+
+# List schemas in DW
+psql-schemas:
+	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}" -c "\\dn"'
+
+# List tables in raw schema
+psql-tables:
+	@bash -c 'source .env 2>/dev/null; PGPASSWORD="$$DW_PG_PASSWORD" psql -h "$${DW_PG_HOST:-localhost}" -p "$${DW_PG_PORT:-5432}" -U "$${DW_PG_USER:-postgres}" -d "$${DW_PG_DATABASE:-lana_dw}" -c "SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('\''$$DW_RAW_SCHEMA'\'', '\''$$DW_DBT_SCHEMA'\'') ORDER BY schemaname, tablename;"'
 
 # Cleanup
 clean:
